@@ -4,6 +4,5 @@ transformers
 kaggle
 rlax
 flax
-gemma
 orbax
 git+https://github.com/google-deepmind/gemma.git
