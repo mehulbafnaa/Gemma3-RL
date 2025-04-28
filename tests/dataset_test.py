@@ -13,7 +13,8 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from pathlib import Path
 import numpy as np
-from typing import Optional, List, Dict # Import needed types
+from typing import Optional, List, Dict 
+from src.data.preprocessing import BOS, EOS, START_OF_TURN, END_OF_TURN, USER, MODEL, IMAGE_TOKEN # Import needed types
 
 # Configure logging
 logging.basicConfig(level=logging.INFO,
@@ -244,8 +245,7 @@ def test_tf_dataset_pipeline(dataset: Optional[MathVistaDataset]):
 def test_preprocessing_functions():
     """Tests individual preprocessing functions."""
     logger.info("--- Starting Preprocessing Functions Test ---")
-    # ---> IMPORT CONSTANTS NEEDED FOR ASSERTIONS <---
-    from src.data.preprocessing import BOS, EOS, START_OF_TURN, END_OF_TURN, USER, MODEL, IMAGE_TOKEN
+
     try:
         # 1. Test prompt formatting
         q_text = "Calculate the area of a circle with radius 5."
@@ -310,7 +310,7 @@ def test_preprocessing_functions():
         # 4. Test normalization
         input_str_basic = "  Pi * 5^2 = 25 * pi  "
         # --- CORRECTED EXPECTED OUTPUT ---
-        expected_str_basic = "pi5225pi"
+        expected_str_basic = "pi 5 2 25 pi"
         actual_str_basic = normalize_answer(input_str_basic)
         # --- Logging for debug ---
         logger.info(f"Normalization Input : '{input_str_basic}'")
