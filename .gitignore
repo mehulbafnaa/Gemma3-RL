@@ -1,22 +1,54 @@
 ### AL ###
-#Template for AL projects for Dynamics 365 Business Central
-#launch.json folder
+# Template for AL projects for Dynamics 365 Business Central
+
+# launch.json folder
 .vscode/
-#Cache folder
+
+# Cache folder
 .alcache/
-#Symbols folder
+
+# Symbols folder
 .alpackages/
-#Snapshots folder
+
+# Snapshots folder
 .snapshots/
-#Testing Output folder
+
+# Testing Output folder
 .output/
-#Extension App-file
+
+# Extension App-file
 *.app
-#Rapid Application Development File
+
+# Rapid Application Development File
 rad.json
-#Translation Base-file
+
+# Translation Base-file
 *.g.xlf
-#License-file
+
+# License-file
 *.flf
-#Test results file
+
+# Test results file
 TestResults.xml
+
+### Custom Additions ###
+
+# Ignore data directory (images, downloaded dataset parts)
+data/
+
+# Ignore pre-trained models/checkpoints directory and its contents...
+pre-trained/
+
+# ...but DO NOT ignore .sh files located *directly* inside pre-trained/
+!pre-trained/*.sh
+
+# Ignore virtual environment (adjust name if needed)
+.venv/
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore logs and test outputs
+*.log
+*.png

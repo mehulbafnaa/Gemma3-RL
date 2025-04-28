@@ -1,3 +1,4 @@
+
 jax[tpu]
 pandas
 transformers
@@ -6,3 +7,8 @@ rlax
 flax
 orbax
 git+https://github.com/google-deepmind/gemma.git
+datasets>=2.14.0  # Hugging Face datasets library
+tensorflow>=2.12.0  # For tf.data pipeline
+Pillow>=9.0.0  # For image processing
+matplotlib>=3.7.0  # For visualization in tests
+requests>=2.28.0  # For downloading datasets

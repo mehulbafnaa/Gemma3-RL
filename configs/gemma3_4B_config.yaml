@@ -1,0 +1,36 @@
+# Configuration for Gemma3-4B Multimodal Model
+# Derived from params_summary.json
+
+# --- Language Model Configuration ---
+language_model:
+  vocab_size: 262144
+  embed_dim: 2560
+  num_layers: 34
+  num_q_heads: 8
+  num_kv_heads: 4      # Inferred from GQA structure
+  head_dim: 256        # Inferred from einsum shapes
+  mlp_expanded_dim: 10240
+  # Add other relevant language model parameters here if needed by the config class
+  # e.g., activation_function: 'gelu', norm_type: 'rms'
+
+# --- Vision Model Configuration ---
+# Note: The actual Gemma library might handle vision config internally,
+# or the main config class might accept these directly. Adjust as needed.
+vision_model:
+  num_layers: 27
+  embed_dim: 1152
+  mlp_dim: 4304
+  num_heads: 16
+  head_dim: 72
+  # Add other relevant vision model parameters here if needed
+  # e.g., patch_size: 14, image_size: 224
+
+# --- Multimodal Configuration (if applicable) ---
+# Some libraries might have specific multimodal connection parameters here.
+multimodal:
+  projection_dim: 2560 # Dimension the vision embeddings are projected to
+
+# --- Other Potential Parameters ---
+# Depending on the library's config class, you might need:
+# dtype: 'bfloat16' # Or specify per component if mixed precision is handled via config
+# max_sequence_length: 8192 # Example
