@@ -34,7 +34,7 @@ TestResults.xml
 ### Custom Additions ###
 
 # Ignore data directory (images, downloaded dataset parts)
-data/
+/data/
 
 # Ignore pre-trained models/checkpoints directory and its contents...
 pre-trained/
