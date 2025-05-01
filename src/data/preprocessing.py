@@ -10,7 +10,7 @@ import sys
 import numpy as np
 from typing import Dict, List, Optional, Any
 from PIL import Image, UnidentifiedImageError
-
+from .prompt_template import create_mathvista_prompt, GemmaTokens
 logger = logging.getLogger(__name__)
 
 # Gemma 3 Special Tokens (adjust if necessary based on final model details)
@@ -26,7 +26,7 @@ IMAGE_TOKEN = "<img>" # Placeholder for where image context might be indicated
 def format_gemma_prompt(
     question: str,
     image_provided: bool = False, # Indicate if an image is part of the input
-    instruction: str = "Solve this mathematical problem step by step."
+    instruction: str = "Solve this problem step by step and give me all the reasoning."
 ) -> str:
     """
     Format a prompt for Gemma 3 multimodal input, following typical dialog structure.
@@ -39,18 +39,24 @@ def format_gemma_prompt(
     Returns:
         Formatted prompt string for Gemma 3.
     """
-    question = question.strip()
+    # question = question.strip()
 
-    # Combine question and instruction
-    full_query = f"{question}\n\n{instruction}" if instruction and instruction not in question else question
+    # # Combine question and instruction
+    # full_query = f"{question}\n\n{instruction}" if instruction and instruction not in question else question
 
-    # Construct the prompt
-    # If an image is provided, we might prepend a placeholder or just structure the text turn.
-    # The actual image data is handled separately during model input preparation.
-    image_prefix = f"{IMAGE_TOKEN}\n" if image_provided else "" # Optional image token hint
-    formatted = f"{BOS}{START_OF_TURN}{USER}\n{image_prefix}{full_query}{END_OF_TURN}"
+    # # Construct the prompt
+    # # If an image is provided, we might prepend a placeholder or just structure the text turn.
+    # # The actual image data is handled separately during model input preparation.
+    # image_prefix = f"{IMAGE_TOKEN}\n" if image_provided else "" # Optional image token hint
+    # formatted = f"{BOS}{START_OF_TURN}{USER}\n{image_prefix}{full_query}{END_OF_TURN}"
 
-    return formatted
+    # return formatted
+
+    return create_mathvista_prompt(
+        question=question,
+        instruction=instruction,
+        include_image=image_provided
+    )
 
 
 def format_gemma_response(
@@ -218,6 +224,41 @@ def extract_reasoning(
 #     return text
 
 
+def extract_answer_from_response(response: str, answer_tag: str = "answer") -> Optional[str]:
+    """
+    Extract the answer from a model's response using the specified tag.
+    
+    Args:
+        response: The model's response text
+        answer_tag: The tag used to mark the answer
+        
+    Returns:
+        The extracted answer or None if not found
+    """
+    import re
+    
+    # Pattern to find content between tags
+    pattern = rf'<{answer_tag}>(.*?)</{answer_tag}>'
+    match = re.search(pattern, response, re.DOTALL | re.IGNORECASE)
+    
+    if match:
+        return match.group(1).strip()
+    
+    # Fallback pattern for final answer without tags
+    fallback_patterns = [
+        r'final answer:?\s*(.*?)(?:$|\n)',
+        r'answer:?\s*(.*?)(?:$|\n)',
+        r'therefore,?\s*(.*?)(?:$|\n)'
+    ]
+    
+    for pattern in fallback_patterns:
+        match = re.search(pattern, response, re.DOTALL | re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+    
+    return None
+
+
 # Update to the normalize_answer function in preprocessing.py
 
 def normalize_answer(text: Optional[str]) -> str:
@@ -373,40 +414,60 @@ def check_answer_correctness(
     return score
 
 
+# def resize_image_for_gemma(
+#     image_path: str,
+#     target_size: int = 896, # Default for many vision models, confirm for specific Gemma 3
+#     resampling_method = Image.Resampling.LANCZOS # High-quality resampling
+# ) -> Optional[np.ndarray]:
+#     """
+#     Opens, resizes, and normalizes an image for Gemma 3 input.
+
+#     Args:
+#         image_path: Path to the image file.
+#         target_size: Target square size (e.g., 896x896).
+#         resampling_method: PIL resampling filter.
+
+#     Returns:
+#         Resized and normalized image as a NumPy array (H, W, C) with values [0, 1],
+#         or None if the image cannot be processed.
+#     """
+#     try:
+#         img = Image.open(image_path).convert("RGB")
+
+#         # Resize to square
+#         img_resized = img.resize((target_size, target_size), resample=resampling_method)
+
+#         # Convert to numpy array and normalize to [0, 1]
+#         img_array = np.array(img_resized, dtype=np.float32) / 255.0
+
+#         return img_array
+
+#     except FileNotFoundError:
+#         logger.error(f"Image file not found: {image_path}")
+#         return None
+#     except UnidentifiedImageError:
+#         logger.error(f"Could not identify image file (possibly corrupt or unsupported format): {image_path}")
+#         return None
+#     except Exception as e:
+#         logger.error(f"Failed to resize image {image_path}: {e}", exc_info=True)
+#         return None
+
+
 def resize_image_for_gemma(
     image_path: str,
-    target_size: int = 896, # Default for many vision models, confirm for specific Gemma 3
-    resampling_method = Image.Resampling.LANCZOS # High-quality resampling
+    target_size: int = 896
 ) -> Optional[np.ndarray]:
     """
-    Opens, resizes, and normalizes an image for Gemma 3 input.
-
-    Args:
-        image_path: Path to the image file.
-        target_size: Target square size (e.g., 896x896).
-        resampling_method: PIL resampling filter.
-
-    Returns:
-        Resized and normalized image as a NumPy array (H, W, C) with values [0, 1],
-        or None if the image cannot be processed.
+    Opens and resizes an image for Gemma 3 input, returning uint8 format.
     """
     try:
         img = Image.open(image_path).convert("RGB")
-
-        # Resize to square
-        img_resized = img.resize((target_size, target_size), resample=resampling_method)
-
-        # Convert to numpy array and normalize to [0, 1]
-        img_array = np.array(img_resized, dtype=np.float32) / 255.0
-
+        img_resized = img.resize((target_size, target_size), resample=Image.Resampling.LANCZOS)
+        
+        # Return as uint8 (no normalization to [0,1])
+        img_array = np.array(img_resized, dtype=np.uint8)
+        
         return img_array
-
-    except FileNotFoundError:
-        logger.error(f"Image file not found: {image_path}")
-        return None
-    except UnidentifiedImageError:
-        logger.error(f"Could not identify image file (possibly corrupt or unsupported format): {image_path}")
-        return None
     except Exception as e:
         logger.error(f"Failed to resize image {image_path}: {e}", exc_info=True)
         return None

@@ -5,5 +5,5 @@ export KAGGLE_USERNAME=mehulbafnaa
 export KAGGLE_KEY=a36eb14443aa54eaf661c9833140edd0
 
 curl -L -u $KAGGLE_USERNAME:$KAGGLE_KEY\
-  -o model.tar.gz\
-  https://www.kaggle.com/api/v1/models/google/gemma-3/flax/gemma3-4b/1/download
+  -o ./model.tar.gz\
+  https://www.kaggle.com/api/v1/models/google/gemma-3/flax/gemma3-4b-it/1/download
