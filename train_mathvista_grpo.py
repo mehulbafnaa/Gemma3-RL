@@ -139,7 +139,7 @@ def main():
         
         # Load MathVista dataset
         logger.info("Loading MathVista dataset...")
-        dataset = load_dataset("AI4Math/MathVista", split="testmini")
+        dataset = load_dataset("AI4Math/MathVista", split="test")
         
         # Prepare dataset for training
         # Use a small subset for initial testing

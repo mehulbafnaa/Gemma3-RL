@@ -19,6 +19,7 @@ from PIL import Image
 import jax
 import jax.numpy as jnp
 from gemma import gm
+from datasets import load_dataset
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -80,11 +81,10 @@ def get_mathvista_example():
         Tuple of (question, image_path, example_id) or (None, None, None) if no examples found
     """
     try:
-        # Import here to avoid requiring the dataset module if not using MathVista
-        from datasets import load_dataset
-        
+
+                
         # Attempt to load MathVista testmini split
-        dataset = load_dataset("AI4Math/MathVista", split="testmini")
+        dataset = load_dataset("AI4Math/MathVista", split="test")
         
         if not dataset or len(dataset) == 0:
             logger.error("MathVista dataset is empty or failed to load")

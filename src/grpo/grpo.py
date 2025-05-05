@@ -18,6 +18,7 @@ import jax.numpy as jnp
 import optax
 import numpy as np
 from tqdm import tqdm
+from gemma import gm
 
 from src.reward.math_reward import (
     combined_reward, 
@@ -49,7 +50,7 @@ class GRPOTrainer:
         learning_rate: float = 5e-6,
         kl_coef: float = 0.1,
         max_grad_norm: float = 0.1,
-        num_generations: int = 4,
+        num_generations: int = 3,
         max_seq_length: int = 1024,
         max_prompt_length: int = 256,
         format_weight: float = 1.0,
@@ -298,7 +299,7 @@ class GRPOTrainer:
         Returns:
             Generated response and logits
         """
-        from gemma import gm
+        
         
         # Create new RNG key
         self.rng, subkey = jax.random.split(self.rng)
@@ -547,7 +548,7 @@ class GRPOTrainer:
     
     def save_checkpoint(self, step):
         """Save model checkpoint"""
-        from gemma import gm
+
         
         checkpoint_dir = self.output_dir / f"checkpoint-{step}"
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
