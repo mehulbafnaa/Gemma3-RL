@@ -104,7 +104,7 @@ if [[ "$EXAMPLE" == "7" || "$EXAMPLE" == "all" ]]; then
     run_example 7 "Math Reasoning" \
     "python $SCRIPT_PATH \
         --prompt \"<start_of_turn>user\\nSolve this mathematical problem step-by-step and give me all the reasoning traces. Format your final answer as <answer>YOUR ANSWER</answer>\\n<start_of_image>\\n<end_of_turn>\\n<start_of_turn>model\" \
-        --max_tokens 512 \
+        --max_tokens -1 \
         --model_size $MODEL_SIZE"
 fi
 

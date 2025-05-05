@@ -1,0 +1,6 @@
+Search Query: ("real-time" OR "realtime") AND ("speech driven" OR "speech-driven" OR "audio driven" OR "audio-driven") AND ("facial animation" OR "face animation" OR "lip sync" OR "lip-sync" OR "talking head")
+Years: 2020-2025
+Total Papers Found: 0
+Generated: 2025-05-05 01:45:58
+==================================================
+

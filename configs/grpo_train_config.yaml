@@ -1,0 +1,63 @@
+# Configuration for GRPO (Group Relative Policy Optimization) training
+# This config file contains the settings for model, training, and data
+
+# Model configuration
+model:
+  # Path to the pre-trained model checkpoint
+  path: "pre-trained/gemma3-4b"
+  # Path to the tokenizer model file
+  tokenizer_path: "pre-trained/tokenizer.model"
+  # Model size: 4b, 12b, or 27b
+  size: "4b"
+  # Whether to load text-only or multimodal model
+  text_only: false
+
+# Training configuration
+training:
+  # Learning parameters
+  learning_rate: 1.0e-5
+  weight_decay: 0.01
+  
+  # Training parameters
+  batch_size: 4
+  accumulation_steps: 1
+  num_epochs: 3
+  max_steps: 1000
+  
+  # GRPO specific
+  reference_free: false
+  beta: 0.1
+  margin: 0.0
+  
+  # Optimization
+  max_grad_norm: 1.0
+  adam_b1: 0.9
+  adam_b2: 0.999
+  adam_eps: 1.0e-8
+  
+  # System
+  seed: 42
+  dtype: "bfloat16"
+  precision: "bfloat16"
+  
+  # Saving and logging
+  log_interval: 10
+  eval_interval: 100
+  save_interval: 200
+  eval_samples: 100
+  
+  # Generation
+  max_seq_length: 512
+  temperature: 0.7
+  top_p: 0.9
+
+# Data configuration
+data:
+  # Path to the data directory
+  data_dir: "data"
+  # Path to the images directory
+  images_dir: "data/images"
+  # Dataset split to use
+  split: "testmini"
+  # Proportion of data to use for training
+  train_split: 0.8

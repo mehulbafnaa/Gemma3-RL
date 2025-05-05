@@ -39,18 +39,7 @@ def format_gemma_prompt(
     Returns:
         Formatted prompt string for Gemma 3.
     """
-    # question = question.strip()
 
-    # # Combine question and instruction
-    # full_query = f"{question}\n\n{instruction}" if instruction and instruction not in question else question
-
-    # # Construct the prompt
-    # # If an image is provided, we might prepend a placeholder or just structure the text turn.
-    # # The actual image data is handled separately during model input preparation.
-    # image_prefix = f"{IMAGE_TOKEN}\n" if image_provided else "" # Optional image token hint
-    # formatted = f"{BOS}{START_OF_TURN}{USER}\n{image_prefix}{full_query}{END_OF_TURN}"
-
-    # return formatted
 
     return create_mathvista_prompt(
         question=question,
@@ -183,45 +172,6 @@ def extract_reasoning(
     logger.debug(f"Could not extract reasoning using tag '{reasoning_tag}' or implicitly before answer tag '{answer_tag}'.")
     return None # No reasoning found
 
-
-# def normalize_answer(text: Optional[str]) -> str:
-#     """
-#     Normalize answer string for robust comparison.
-#     Handles lowercase, punctuation, whitespace, and basic number formatting.
-
-#     Args:
-#         text: Input answer string.
-
-#     Returns:
-#         Normalized string.
-#     """
-#     if text is None:
-#         return ""
-
-#     # Convert to lowercase
-#     text = str(text).lower()
-
-#     # Remove common units or symbols that might interfere (adjust as needed)
-#     text = re.sub(r"[\$%€£¥]", "", text)
-
-#     # Remove punctuation except decimal points and commas within numbers
-#     # Keep letters, numbers, whitespace, '.', ','
-#     text = re.sub(r"[^a-z0-9\s.,-]", "", text)
-
-#     # Handle commas in numbers (remove them)
-#     text = re.sub(r"(\d),(\d)", r"\1\2", text)
-
-#     # Optional: Convert number words to digits (more complex, consider libraries like inflect)
-#     # text = text.replace(" one ", " 1 ").replace(" two ", " 2 ") ...
-
-#     # Standardize whitespace
-#     text = re.sub(r'\s+', ' ', text).strip()
-
-#     # Handle potential leading/trailing decimal points if desired (e.g., ".5" -> "0.5")
-#     text = re.sub(r"^\.", "0.", text)
-#     text = re.sub(r"\.$", "", text) # Remove trailing decimal point
-
-#     return text
 
 
 def extract_answer_from_response(response: str, answer_tag: str = "answer") -> Optional[str]:
@@ -412,45 +362,6 @@ def check_answer_correctness(
         return 0.0 # Return 0 if numeric comparison was intended but failed
 
     return score
-
-
-# def resize_image_for_gemma(
-#     image_path: str,
-#     target_size: int = 896, # Default for many vision models, confirm for specific Gemma 3
-#     resampling_method = Image.Resampling.LANCZOS # High-quality resampling
-# ) -> Optional[np.ndarray]:
-#     """
-#     Opens, resizes, and normalizes an image for Gemma 3 input.
-
-#     Args:
-#         image_path: Path to the image file.
-#         target_size: Target square size (e.g., 896x896).
-#         resampling_method: PIL resampling filter.
-
-#     Returns:
-#         Resized and normalized image as a NumPy array (H, W, C) with values [0, 1],
-#         or None if the image cannot be processed.
-#     """
-#     try:
-#         img = Image.open(image_path).convert("RGB")
-
-#         # Resize to square
-#         img_resized = img.resize((target_size, target_size), resample=resampling_method)
-
-#         # Convert to numpy array and normalize to [0, 1]
-#         img_array = np.array(img_resized, dtype=np.float32) / 255.0
-
-#         return img_array
-
-#     except FileNotFoundError:
-#         logger.error(f"Image file not found: {image_path}")
-#         return None
-#     except UnidentifiedImageError:
-#         logger.error(f"Could not identify image file (possibly corrupt or unsupported format): {image_path}")
-#         return None
-#     except Exception as e:
-#         logger.error(f"Failed to resize image {image_path}: {e}", exc_info=True)
-#         return None
 
 
 def resize_image_for_gemma(

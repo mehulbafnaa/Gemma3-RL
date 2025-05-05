@@ -2,6 +2,7 @@
 jax[tpu]
 pandas
 transformers
+orbax-checkpoint
 kaggle
 rlax
 flax
