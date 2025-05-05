@@ -1,17 +1,19 @@
+
+
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-prompt_templates.py - Multimodal prompt templates for Gemma 3 and MathVista
+Prompt templates for various tasks and models.
 
-This module provides optimized prompt templates for multimodal mathematical
-reasoning with Gemma 3, specifically tailored for the MathVista dataset.
+This module contains functions to create standardized prompts
+for different tasks and models, ensuring consistent formatting.
 """
 
 import logging
-from typing import Optional
+from typing import Optional, List, Dict, Any, Union
 
 logger = logging.getLogger(__name__)
 
-# Special token strings for Gemma 3
 class GemmaTokens:
     """String representations of Gemma 3 special tokens"""
     BOS = "<bos>"
@@ -23,78 +25,134 @@ class GemmaTokens:
     USER = "user"
     MODEL = "model"
 
-def create_mathvista_prompt(
-    question: str,
-    instruction: str = "Solve this problem step-by-step and give me all the reasoning traces.",
-    include_image: bool = True,
-    include_bos: bool = False  # Set to False as chat_sampler likely adds this
+def create_gemma_prompt(
+    question: str, 
+    instruction: Optional[str] = None, 
+    include_image: bool = True
 ) -> str:
     """
-    Create a formatted prompt for Gemma 3 with a MathVista problem.
+    Format a plain text prompt with Gemma 3 tokens.
     
     Args:
-        question: The MathVista question text
-        instruction: Instruction for solving the problem
-        include_image: Whether to include the image token
-        include_bos: Whether to include the BOS token
+        question: The user's question
+        instruction: Optional instruction to include before the question
+        include_image: Whether to include image tokens
         
     Returns:
-        Formatted prompt string following the successful Gemma 3 pattern
+        Formatted prompt for Gemma 3
     """
     tokens = GemmaTokens()
     
-    # Combine question and instruction
-    if question and instruction and instruction not in question:
-        full_query = f"{question.strip()}\n\n{instruction}"
-    else:
-        full_query = question.strip()
-    
-    # Format for Gemma 3
+    # Format as a chat with user turn
     prompt = f"{tokens.START_OF_TURN}{tokens.USER}\n"
-    prompt += f"{full_query}\n"
     
-    # Add image token if needed
+    # Add instruction if provided
+    if instruction:
+        prompt += f"{instruction}\n"
+    
+    # Add question
+    prompt += f"{question}\n"
+    
+    # Add image placeholder if requested
     if include_image:
         prompt += f"{tokens.START_OF_IMAGE}\n"
     
+    # Close user turn and start model turn
     prompt += f"{tokens.END_OF_TURN}\n{tokens.START_OF_TURN}{tokens.MODEL}"
-    
-    # Add BOS token if requested
-    if include_bos:
-        prompt = f"{tokens.BOS}{prompt}"
     
     return prompt
 
-def extract_answer_from_response(response: str, answer_tag: str = "answer") -> Optional[str]:
+def create_mathvista_prompt(
+    question: str, 
+    instruction: Optional[str] = "Solve this problem step-by-step",
+    include_image: bool = True,
+    use_format_tags: bool = True
+) -> str:
     """
-    Extract the answer from a model's response using the specified tag.
+    Create a prompt specifically formatted for math problems with images.
     
     Args:
-        response: The model's response text
-        answer_tag: The tag used to mark the answer
+        question: The math problem
+        instruction: Optional instruction to include
+        include_image: Whether to include image tokens
+        use_format_tags: Whether to include format tags in the instruction
         
     Returns:
-        The extracted answer or None if not found
+        Formatted prompt for math problem
     """
-    import re
+    # Special format tags for math reasoning
+    reasoning_start = "<start_reasoning>"
+    reasoning_end = "<end_reasoning>"
+    solution_start = "<answer>"
+    solution_end = "</answer>"
     
-    # Pattern to find content between tags
-    pattern = rf'<{answer_tag}>(.*?)</{answer_tag}>'
-    match = re.search(pattern, response, re.DOTALL | re.IGNORECASE)
+    # Create the instruction with format tags
+    if use_format_tags:
+        full_instruction = (
+            f"{instruction}\n\n"
+            f"Look carefully at the image and solve the problem step by step.\n"
+            f"First, provide your detailed reasoning between {reasoning_start} and {reasoning_end}.\n"
+            f"Then, provide your final answer between {solution_start} and {solution_end}."
+        )
+    else:
+        full_instruction = instruction
     
-    if match:
-        return match.group(1).strip()
+    # Use the base function to create the prompt
+    return create_gemma_prompt(
+        question=question,
+        instruction=full_instruction,
+        include_image=include_image
+    )
+
+def format_gemma_chat(messages: List[Dict[str, str]], include_image: bool = False) -> str:
+    """
+    Format a conversation as a Gemma 3 chat.
     
-    # Fallback pattern for final answer without tags
-    fallback_patterns = [
-        r'final answer:?\s*(.*?)(?:$|\n)',
-        r'answer:?\s*(.*?)(?:$|\n)',
-        r'therefore,?\s*(.*?)(?:$|\n)'
-    ]
+    Args:
+        messages: List of message dictionaries with 'role' and 'content' keys
+        include_image: Whether to include image token in the last user message
+        
+    Returns:
+        Formatted Gemma 3 chat
+    """
+    tokens = GemmaTokens()
+    formatted_chat = ""
     
-    for pattern in fallback_patterns:
-        match = re.search(pattern, response, re.DOTALL | re.IGNORECASE)
-        if match:
-            return match.group(1).strip()
+    for i, message in enumerate(messages):
+        role = message.get("role", "")
+        content = message.get("content", "")
+        
+        if role.lower() == "system":
+            # System messages are prepended to the first user message
+            continue
+        
+        # Map roles to Gemma tokens
+        if role.lower() == "user":
+            gemma_role = tokens.USER
+        elif role.lower() in ["assistant", "model"]:
+            gemma_role = tokens.MODEL
+        else:
+            logger.warning(f"Unknown role: {role}, using 'user' instead")
+            gemma_role = tokens.USER
+        
+        # Add system message to the first user message
+        if role.lower() == "user" and i > 0 and messages[i-1].get("role", "").lower() == "system":
+            content = messages[i-1].get("content", "") + "\n\n" + content
+        
+        # Add turn start
+        formatted_chat += f"{tokens.START_OF_TURN}{gemma_role}\n"
+        
+        # Add content
+        formatted_chat += f"{content}\n"
+        
+        # Add image token if this is the last user message and include_image is True
+        if role.lower() == "user" and include_image and i == len(messages) - 1:
+            formatted_chat += f"{tokens.START_OF_IMAGE}\n"
+        
+        # Add turn end
+        formatted_chat += f"{tokens.END_OF_TURN}\n"
     
-    return None
+    # Add start of model turn for generation
+    formatted_chat += f"{tokens.START_OF_TURN}{tokens.MODEL}"
+    
+    return formatted_chat
