@@ -1,8 +1,8 @@
 #!/bin/bash
 # Export your Kaggle username and API key
-export KAGGLE_USERNAME=mehulbafnaa
-# {"username":"mehulbafnaa","key":"a36eb14443aa54eaf661c9833140edd0"}
-export KAGGLE_KEY=a36eb14443aa54eaf661c9833140edd0
+export KAGGLE_USERNAME=your_username
+
+export KAGGLE_KEY=your_API_key
 
 curl -L -u $KAGGLE_USERNAME:$KAGGLE_KEY\
   -o ./model.tar.gz\
